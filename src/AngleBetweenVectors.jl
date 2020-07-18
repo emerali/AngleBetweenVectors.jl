@@ -1,11 +1,17 @@
 module AngleBetweenVectors
 
+export arc
+
 import Base: angle
 
 import LinearAlgebra: norm
 
 
 @inline unitize(p) = p ./ norm(p)
+
+function arc(point1::NTuple{2,T}, point2::NTuple{2,T}) where {T<:Real}
+    return atan(point1[2], point1[1]) - atan(point2[2], point2[1])
+end
 
 """
     angle(point1::T, point2::T) where {T}
