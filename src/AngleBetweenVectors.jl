@@ -2,10 +2,12 @@ module AngleBetweenVectors
 
 import Base: angle
 
-import LinearAlgebra: norm
+import LinearAlgebra: norm, normalize
 
 
-@inline unitize(p) = p ./ norm(p)
+@inline unitize(p::NTuple) = p ./ norm(p)
+@inline unitize(p::Vector) = normalize(p)
+
 
 """
     angle(point1::T, point2::T) where {T}
@@ -28,10 +30,15 @@ function angle(point1::A, point2::A) where {N,T<:Real,NT<:NTuple{N,T}, V<:Vector
     unitpoint1 = unitize(point1)
     unitpoint2 = unitize(point2)
 
-    y = unitpoint1 .- unitpoint2
-    x = unitpoint1 .+ unitpoint2
+    ny, nx = zero(T), zero(T)
+    @inbounds @simd for i in eachindex(unitpoint1, unitpoint2)
+	u1, u2 = unitpoint1[i], unitpoint2[i]
+	ny += abs2(u1 - u2)
+	nx += abs2(u1 + u2)
+    end
 
-    a = 2 * atan(norm(y) / norm(x))
+    r = sqrt(ny) / sqrt(nx)
+    a = 2 * atan(r)
 
     !(signbit(a) || signbit(T(pi) - a)) ? a : (signbit(a) ? zero(T) : T(pi))
 end
